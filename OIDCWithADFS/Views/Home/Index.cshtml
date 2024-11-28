@@ -1,0 +1,21 @@
+﻿<h1>Welcome to ADFS OIDC</h1>
+<p>
+    <a href="/Home/Login" id="loginButton">Login</a> | <a href="/Home/Logout">Logout</a>
+</p>
+
+<!-- 로딩 UI -->
+<div id="loading" style="display: none;">
+    <p>Loading, please wait...</p>
+</div>
+
+<script>
+    document.getElementById('loginButton').addEventListener('click', function () {
+        // 로딩 표시
+        document.getElementById('loading').style.display = 'block';
+
+        // 1초 후 실제 로그인 요청으로 이동
+        setTimeout(() => {
+            window.location.href = "/Home/Login";
+        }, 100);
+    });
+</script>
