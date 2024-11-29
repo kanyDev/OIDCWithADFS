@@ -1,21 +1,33 @@
-﻿<h1>Welcome to ADFS OIDC</h1>
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+<h1>Welcome to ADFS OIDC</h1>
 <p>
-    <a href="/Home/Login" id="loginButton">Login</a> | <a href="/Home/Logout">Logout</a>
+    <a href="#" id="loginButton">Login</a> | <a href="@Url.Action("Logout", "Home")">Logout</a>
 </p>
 
-<!-- 로딩 UI -->
-<div id="loading" style="display: none;">
+<!-- 로딩 화면 -->
+<div id="loading" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); color: white; justify-content: center; align-items: center; z-index: 1000;">
     <p>Loading, please wait...</p>
 </div>
 
-<script>
-    document.getElementById('loginButton').addEventListener('click', function () {
-        // 로딩 표시
-        document.getElementById('loading').style.display = 'block';
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const loginButton = document.getElementById('loginButton');
+            const loadingDiv = document.getElementById('loading');
 
-        // 1초 후 실제 로그인 요청으로 이동
-        setTimeout(() => {
-            window.location.href = "/Home/Login";
-        }, 100);
-    });
-</script>
+            loginButton.addEventListener('click', function (event) {
+                event.preventDefault(); // 기본 링크 동작 방지
+                // 로딩 화면 표시
+                loadingDiv.style.display = 'flex';
+
+                // ADFS 로그인 요청으로 이동
+                setTimeout(() => {
+                    window.location.href = '@Url.Action("Login", "Home")'; // HomeController의 Login 액션 호출
+                }, 500); // 로딩 효과를 위해 짧은 지연 추가
+            });
+        });
+    </script>
+}

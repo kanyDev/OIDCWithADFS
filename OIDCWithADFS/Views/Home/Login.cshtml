@@ -1,68 +1,82 @@
 ﻿@using System.Security.Claims
 @using System.IdentityModel.Tokens.Jwt
-@using Microsoft.Owin
 
-<h1>Welcome, @(User.Identity.Name ?? "Guest")!</h1>
-<h3>Your Claims:</h3>
-<ul>
-    @{
-        var claimsPrincipal = User as ClaimsPrincipal;
-        if (claimsPrincipal != null)
-        {
-            foreach (Claim claim in claimsPrincipal.Claims)
+@{
+    ViewBag.Title = "Login";
+}
+
+<!-- 로딩 화면 -->
+<div id="loadingOverlay" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); color: white; justify-content: center; align-items: center; z-index: 1000;">
+    <p>ADFS 인증 중... 잠시만 기다려 주세요.</p>
+</div>
+
+<!-- 로그인 성공 후 콘텐츠 -->
+<div id="content" style="display: none;">
+    <h1>Welcome, @(User.Identity.Name ?? "Guest")!</h1>
+    <h3>Your Claims:</h3>
+    <ul>
+        @{
+            var claimsPrincipal = User as ClaimsPrincipal;
+            if (claimsPrincipal != null)
             {
-                <li>@claim.Type: @claim.Value</li>
-            }
-        }
-    }
-</ul>
-
-<h3>Access Token:</h3>
-<ul>
-    @{
-        // 세션에서 액세스 토큰 가져오기
-        var accessToken = HttpContext.Current.Session["access_token"] as string;
-
-        if (!string.IsNullOrEmpty(accessToken))
-        {
-            <li>Access Token: @accessToken</li>
-
-            // JWT 토큰 디코딩 및 Claims 추출
-            var jwtHandler = new JwtSecurityTokenHandler();
-            if (jwtHandler.CanReadToken(accessToken))
-            {
-                var jwtToken = jwtHandler.ReadJwtToken(accessToken);
-
-                // 필요한 특정 Claims만 출력
-                <li>JWT Claims:</li>
-                foreach (var claim in jwtToken.Claims)
+                foreach (var claim in claimsPrincipal.Claims)
                 {
                     <li>@claim.Type: @claim.Value</li>
                 }
             }
+        }
+    </ul>
+
+    <h3>Access Token:</h3>
+    <ul>
+        @{
+            // 세션에서 액세스 토큰 가져오기
+            var accessToken = HttpContext.Current.Session["access_token"] as string;
+
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                <li>Access Token: @accessToken</li>
+
+                // JWT 디코딩 및 Claims 출력
+                var jwtHandler = new JwtSecurityTokenHandler();
+                if (jwtHandler.CanReadToken(accessToken))
+                {
+                    var jwtToken = jwtHandler.ReadJwtToken(accessToken);
+                    <li>JWT Claims:</li>
+                    foreach (var claim in jwtToken.Claims)
+                    {
+                        <li>@claim.Type: @claim.Value</li>
+                    }
+                }
+                else
+                {
+                    <li>Invalid JWT Token</li>
+                }
+            }
             else
             {
-                <li>Invalid JWT Token</li>
+                <li>No Access Token found</li>
             }
         }
-        else
-        {
-            <li>No Access Token found</li>
-        }
-    }
+    </ul>
 
-</ul>
+    <a href="@Url.Action("Logout", "Home")">Logout</a>
+</div>
 
-<a href="/Home/Logout">Logout</a>
+@section Scripts {
+    <script>
+        window.onload = function () {
+            // 세션에서 액세스 토큰 상태 확인
+            var accessToken = '@HttpContext.Current.Session["access_token"]';
 
-<script>
-    fetch('/api/resource', {
-        method: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + '@accessToken'
-        }
-    })
-        .then(response => response.json())
-        .then(data => console.log(data))
-        .catch(error => console.error('Error:', error));
-</script>
+            if (accessToken && accessToken !== 'null' && accessToken !== '') {
+                // 인증 성공: 로딩 화면 숨기고 콘텐츠 표시
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            } else {
+                // 인증 실패: 에러 메시지 표시
+                document.getElementById('loadingOverlay').innerText = "인증 실패: 다시 시도해 주세요.";
+            }
+        };
+    </script>
+}
